@@ -3,11 +3,6 @@ Work Samples
 Ryan E. Little
 10/5/2020
 
-  - [Overview](#overview)
-  - [Object-Oriented Programming](#object-oriented%20programming)
-  - [Python Scripts](#Python%20Scripts)
-  - [Data Analysis in R](#data%20analysis%20in%20r)
-
 ## Overview
 
 This repository exists to show examples of the code I have written as a
@@ -27,7 +22,7 @@ court websites more accessible to local news reporters.
 
 All of the code in this repository was written by me.
 
-## Object-Oriented Programming
+## Object-Oriented Programming<a id="object"></a>
 
 This code was written as part of a collaboration between the Howard
 Center for Investigative Journalism and
@@ -55,7 +50,7 @@ executes the submission using a given xpath or Javascript function. It
 also accommodates an inheritance strategy that will allow a developer to
 define their own submission script.
 
-## Python Scripts
+## Python Scripts<a id="python"></a>
 
 These scripts were written as I first began implementing a more
 functional style into the procedural scripts I was writing to acquire
@@ -76,7 +71,7 @@ addresses that were successfully geocoded. This process allowed us to
 assign evictions to neighborhoods and join the counts with U.S. Census
 demographic information.
 
-## Data Analysis in R
+## Data Analysis in R<a id="data"></a>
 
 Analysis of
 [okaloosa-criminal-records-analysis.rmd](https://github.com/ryanelittle/work_samples/blob/main/data-analysis-in-r/okaloosa-criminal-records-analysis.Rmd)

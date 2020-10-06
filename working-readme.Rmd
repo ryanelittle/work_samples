@@ -9,10 +9,6 @@ always_allow_html: true
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, paged.print=TRUE)
 ```
 
-- [Object-Oriented Programming](#object)
-- [Python Scripts](#python)
-- [Data Analysis in R](#data)
-
 ## Overview
 
 This repository exists to show examples of the code I have written as a data reporter at the [Howard Center for Investigative Journalism at the University of Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
