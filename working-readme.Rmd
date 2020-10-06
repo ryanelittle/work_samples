@@ -9,10 +9,9 @@ always_allow_html: true
 knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, paged.print=TRUE)
 ```
 
-- [Overview](#overview)
-- [Object-Oriented Programming](#object-oriented programming)
-- [Python Scripts](#Python Scripts)
-- [Data Analysis in R](#data analysis in r)
+- [Object-Oriented Programming](#object)
+- [Python Scripts](#python)
+- [Data Analysis in R](#data)
 
 ## Overview
 
@@ -25,7 +24,7 @@ Before I began my graduate education at the [Philip Merrill College of Journalis
 All of the code in this repository was written by me.
 
 
-## Object-Oriented Programming
+## Object-Oriented Programming<a id="object"></a>
 
 This code was written as part of a collaboration between the Howard Center for Investigative Journalism and [BigLocalNews](https://biglocalnews.org/#/login) to write a generic court-scraper that supports the most common court website platforms. 
 
@@ -33,7 +32,7 @@ This code was written as part of a collaboration between the Howard Center for I
 
 [Recaptcha_v2.py](https://github.com/ryanelittle/work_samples/blob/main/python-oop-coding/recaptcha_v2.py) is part of a captcha-handling library that uses a captcha-solving service to bypass captchas on public court websites. This library injects the response from the service into the page's code and then executes the submission using a given xpath or Javascript function. It also accommodates an inheritance strategy that will allow a developer to define their own submission script.
 
-## Python Scripts
+## Python Scripts<a id="python"></a>
 
 These scripts were written as I first began implementing a more functional style into the procedural scripts I was writing to acquire the court data the Howard Center for Investigative Journalism used for its [summer story on evictions](https://www.usatoday.com/story/news/investigations/2020/09/02/cares-act-eviction-ban-confusion/5686217002/).
 
@@ -41,7 +40,7 @@ These scripts were written as I first began implementing a more functional style
 
 [Address-parser.ipynb](https://github.com/ryanelittle/work_samples/blob/main/python-early-scripting/address-parser.ipynb) was written to clean the defendant addresses scraped from six different counties. The step was instrumental to increasing the percentage of addresses that were successfully geocoded. This process allowed us to assign evictions to neighborhoods and join the counts with U.S. Census demographic information.
 
-## Data Analysis in R
+## Data Analysis in R<a id="data"></a>
 
 Analysis of [okaloosa-criminal-records-analysis.rmd](https://github.com/ryanelittle/work_samples/blob/main/data-analysis-in-r/okaloosa-criminal-records-analysis.Rmd) led to the core findings of the Howard Center for Investigative Journalism's story on the [criminalization of homelessness](https://apnews.com/article/571a8646896ed0d12f3fe7ca3b1d064d). It turned out the same trends identified here were true in other parts of the country.
 
