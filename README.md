@@ -4,23 +4,20 @@ Ryan E. Little
 10/5/2020
 
   - [Overview](#overview)
-  - [Data Analysis in R](#data)
-  - [Coding Open-Source Generic Court Scraper](#object)
-  - [Coding to Solve Journalistic Problems — Quickly](#python)
-  - [About Me](#about)
-  - [Resume](https://media.journoportfolio.com/users/52314/uploads/f6e5aceb-1874-4e87-bac3-1b3536551b8b.pdf)
-  - [Website](www.ryanerinlittle.com)
+  - [Object-Oriented Programming](#object-oriented%20programming)
+  - [Python Scripts](#Python%20Scripts)
+  - [Data Analysis in R](#data%20analysis%20in%20r)
 
 ## Overview
 
 This repository exists to show examples of the code I have written as a
 data reporter at the [Howard Center for Investigative Journalism at the
 University of
-Maryland](https://merrill.umd.%20edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
+Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
 
-These code samples have been chosen to show my growth as a
-computational/data journalist since first learning the basics of
-journalistic data analysis in August 2019.
+These code samples have been chosen to show my growth as a computational
+journalist since first learning the basics of the Tidyverse in August
+2019.
 
 Before I began my graduate education at the [Philip Merrill College of
 Journalism](https://merrill.umd.edu/), I knew almost nothing about
@@ -30,46 +27,12 @@ court websites more accessible to local news reporters.
 
 All of the code in this repository was written by me.
 
-<a id="data"></a>
+## Object-Oriented Programming
 
-## Analysis of Court Records
-
-#### Journalistitic data analysis in R, for loops, logical data cleaning
-
-Analysis of
-[okaloosa-criminal-records-analysis.rmd](https://github.com/ryanelittle/work_samples/blob/main/data-analysis-in-r/okaloosa-criminal-records-analysis.Rmd)
-led to the core findings of the Howard Center for Investigative
-Journalism’s story on the [criminalization of
-homelessness](https://apnews.com/article/571a8646896ed0d12f3fe7ca3b1d064d).
-It turned out the same trends identified here were true in other parts
-of the country.
-
-The data also revealed our lead character. Before I found Kenneth Ivan
-Shultz III on the streets of Fort Walton Beach, Fla., I found the
-homeless man on the top of this data analysis. The 71-year-old retiree
-has spent one of every three nights in jail since he became homeless
-nine years ago.
-
-He was charged with trespassing 96 times. As of June 29, 2020, he had
-spent 1,034 days in jail. He owed $41,311 in court costs.
-
-This analysis also created a searchable database that informed my
-on-the-ground reporting on a March reporting trip I was ordered home
-early from because of the pandemic. The database allowed me to search
-criminal histories as I met individual homeless people on the ground.
-
-<a id="object"></a>
-
-## Coding Open-Source Generic Court Scraper
-
-#### Object-oriented programming, bypassing Google Recaptcha
-
-This code was written as part of a collaboration between the [Howard
-Center for Investigative Journalism at the University of
-Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/)
-and [Big Local News](https://biglocalnews.org/#/login) to write a
-generic court-scraper that supports the most common court website
-platforms.
+This code was written as part of a collaboration between the Howard
+Center for Investigative Journalism and
+[BigLocalNews](https://biglocalnews.org/#/login) to write a generic
+court-scraper that supports the most common court website platforms.
 
 [Last\_date.py](https://github.com/ryanelittle/work_samples/blob/main/python-oop-coding/last_date.py)
 and
@@ -92,11 +55,7 @@ executes the submission using a given xpath or Javascript function. It
 also accommodates an inheritance strategy that will allow a developer to
 define their own submission script.
 
-<a id="python"></a>
-
-## Coding to Solve Journalistic Problems — Quickly
-
-#### Using existing libraries to quickly code scripts, problem solve on deadline
+## Python Scripts
 
 These scripts were written as I first began implementing a more
 functional style into the procedural scripts I was writing to acquire
@@ -117,21 +76,26 @@ addresses that were successfully geocoded. This process allowed us to
 assign evictions to neighborhoods and join the counts with U.S. Census
 demographic information.
 
-<a id="about"></a>
+## Data Analysis in R
 
-## About Me
+Analysis of
+[okaloosa-criminal-records-analysis.rmd](https://github.com/ryanelittle/work_samples/blob/main/data-analysis-in-r/okaloosa-criminal-records-analysis.Rmd)
+led to the core findings of the Howard Center for Investigative
+Journalism’s story on the [criminalization of
+homelessness](https://apnews.com/article/571a8646896ed0d12f3fe7ca3b1d064d).
+It turned out the same trends identified here were true in other parts
+of the country.
 
-Ryan Little is an award-winning reporter based at the Howard Center for
-Investigative Journalism who has also covered the Maryland General
-Assembly and the novel coronavirus for the Capital News Service.
+The data also revealed our lead character. Before I found Kenneth Ivan
+Shultz III on the streets of Fort Walton Beach, Fla., I found the
+homeless man on the top of this data analysis. The 71-year-old retiree
+has spent one of every three nights in jail since he became homeless
+nine years ago.
 
-He previously worked for The Ledger in Lakeland, Fla., where his
-reporting prompted state attorney’s office investigations, caused
-resignations of multiple city officials and the termination of a planned
-$150 million mixed-use development called The Landings.
+He was charged with trespassing 96 times. As of June 29, 2020, he had
+spent 1,034 days in jail. He owed $41,311 in court costs.
 
-Little is pursuing a master’s degree in journalism with an emphasis on
-investigative and computational journalism at the Philip Merrill College
-of Journalism at the University of Maryland. His undergraduate degree is
-from the University of Central Florida, where he studied journalism and
-public administration.
+This analysis also created a searchable database that informed my
+on-the-ground reporting on a March reporting trip I was ordered home
+early from because of the pandemic. The database allowed me to search
+criminal histories as I met individual homeless people on the ground.
