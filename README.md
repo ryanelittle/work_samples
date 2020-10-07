@@ -123,13 +123,15 @@ Ryan Little is an award-winning reporter based at the Howard Center for
 Investigative Journalism who has also covered the Maryland General
 Assembly and the novel coronavirus for the Capital News Service.
 
-He previously worked for The Ledger in Lakeland, Fla., where his
-reporting prompted state attorney’s office investigations, caused
-resignations of multiple city officials and the termination of a planned
-$150 million mixed-use development called The Landings.
+He previously worked for [The Ledger](https://www.theledger.com/) in
+Lakeland, Fla., where his reporting prompted state attorney’s office
+investigations, caused resignations of multiple city officials and the
+termination of a planned $150 million mixed-use development called The
+Landings.
 
 Little is pursuing a master’s degree in journalism with an emphasis on
-investigative and computational journalism at the Philip Merrill College
-of Journalism at the University of Maryland. His undergraduate degree is
-from the University of Central Florida, where he studied journalism and
-public administration.
+investigative and computational journalism at the [Philip Merrill
+College of Journalism at the University of
+Maryland](https://merrill.umd.edu/). His undergraduate degree is from
+the [University of Central Florida](https://communication.ucf.edu/),
+where he studied journalism and public administration.
