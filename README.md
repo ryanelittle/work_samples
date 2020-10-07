@@ -7,7 +7,7 @@ Work Samples
   - [Coding to Solve Journalistic Problems — Quickly](#python)
   - [About Me](#about)
   - [Resume](https://media.journoportfolio.com/users/52314/uploads/f6e5aceb-1874-4e87-bac3-1b3536551b8b.pdf)
-  - [Website](www.ryanerinlittle.com)
+  - [Website](https://www.ryanerinlittle.com)
 
 ## Overview
 
