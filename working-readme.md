@@ -1,16 +1,20 @@
 Work Samples
 ================
-Ryan E. Little
-10/5/2020
 
-\[\]
+  - [Overview](#overview)
+  - [Data Analysis in R](#data)
+  - [Coding Open-Source Generic Court Scraper](#object)
+  - [Coding to Solve Journalistic Problems — Quickly](#python)
+  - [About Me](#about)
+  - [Resume](https://media.journoportfolio.com/users/52314/uploads/f6e5aceb-1874-4e87-bac3-1b3536551b8b.pdf)
+  - [Website](www.ryanerinlittle.com)
 
 ## Overview
 
 This repository exists to show examples of the code I have written as a
 data reporter at the [Howard Center for Investigative Journalism at the
 University of
-Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
+Maryland](https://merrill.umd.%20edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
 
 These code samples have been chosen to show my growth as a
 computational/data journalist since first learning the basics of
@@ -24,7 +28,9 @@ court websites more accessible to local news reporters.
 
 All of the code in this repository was written by me.
 
-## Analysis of Court Records<a id="data"></a>
+<a id="data"></a>
+
+## Analysis of Court Records
 
 #### Journalistitic data analysis in R, for loops, logical data cleaning
 
@@ -50,7 +56,9 @@ on-the-ground reporting on a March reporting trip I was ordered home
 early from because of the pandemic. The database allowed me to search
 criminal histories as I met individual homeless people on the ground.
 
-## Coding Open-Source Generic Court Scraper <a id="object"></a>
+<a id="object"></a>
+
+## Coding Open-Source Generic Court Scraper
 
 #### Object-oriented programming, bypassing Google Recaptcha
 
@@ -82,9 +90,11 @@ executes the submission using a given xpath or Javascript function. It
 also accommodates an inheritance strategy that will allow a developer to
 define their own submission script.
 
-## Coding to Solve Journalistic Problems — Quickly<a id="python"></a>
+<a id="python"></a>
 
-#### Using existing libraries to quickly code scripts, problem solving on deadline
+## Coding to Solve Journalistic Problems — Quickly
+
+#### Using existing libraries to quickly code scripts, problem solve on deadline
 
 These scripts were written as I first began implementing a more
 functional style into the procedural scripts I was writing to acquire
@@ -104,3 +114,22 @@ counties. The step was instrumental to increasing the percentage of
 addresses that were successfully geocoded. This process allowed us to
 assign evictions to neighborhoods and join the counts with U.S. Census
 demographic information.
+
+<a id="about"></a>
+
+## About Me
+
+Ryan Little is an award-winning reporter based at the Howard Center for
+Investigative Journalism who has also covered the Maryland General
+Assembly and the novel coronavirus for the Capital News Service.
+
+He previously worked for The Ledger in Lakeland, Fla., where his
+reporting prompted state attorney’s office investigations, caused
+resignations of multiple city officials and the termination of a planned
+$150 million mixed-use development called The Landings.
+
+Little is pursuing a master’s degree in journalism with an emphasis on
+investigative and computational journalism at the Philip Merrill College
+of Journalism at the University of Maryland. His undergraduate degree is
+from the University of Central Florida, where he studied journalism and
+public administration.
