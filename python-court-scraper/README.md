@@ -12,7 +12,7 @@ platforms.
 
 [Last\_date.py](https://github.com/ryanelittle/work_samples/blob/main/python-court-scraper/last_date.py)
 and
-[search\_page\_mixin.py](https://github.com/ryanelittle/work_samples/blob/main/python-oop-coding/search_page_mixin.py)
+[search\_page\_mixin.py](https://github.com/ryanelittle/work_samples/blob/main/python-court-scraper/search_page_mixin.py)
 are two base libraries that provide case discovery to the automated
 scraping capabilities we are building. The latter instantiates the first
 to provide the most recent case filed for a given year, county and case
