@@ -82,7 +82,7 @@ page. It can be used with
 [Selenium](https://selenium-python.readthedocs.io/) and
 [Requests](https://requests.readthedocs.io/en/master/).
 
-[Recaptcha\_v2.py](https://github.com/ryanelittle/work_samples/blob/main/python-oop-coding/recaptcha_v2.py)
+[Recaptcha\_v2.py](https://github.com/ryanelittle/work_samples/blob/main/python-court-scraper/recaptcha_v2.py)
 is part of a captcha-handling library that uses a captcha-solving
 service to bypass captchas on public court websites. This library
 injects the response from the service into the page’s code and then
