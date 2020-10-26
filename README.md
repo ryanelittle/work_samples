@@ -14,7 +14,7 @@ Work Samples
 This repository exists to show examples of the code I have written as a
 data reporter at the [Howard Center for Investigative Journalism at the
 University of
-Maryland](https://merrill.umd.%20edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
+Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
 
 These code samples have been chosen to show my growth as a
 computational/data journalist since first learning the basics of
