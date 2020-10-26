@@ -35,7 +35,7 @@ All of the code in this repository was written by me.
 #### Journalistitic data analysis in R, for loops, logical data cleaning
 
 Analysis of
-[okaloosa-criminal-records-analysis.rmd](https://github.com/ryanelittle/work_samples/blob/main/data-analysis-in-r/okaloosa-criminal-records-analysis.Rmd)
+[okaloosa-criminal-records-analysis.rmd](https://github.com/ryanelittle/work_samples/blob/main/r-data-analysis/okaloosa-criminal-records-analysis.Rmd)
 led to the core findings of the Howard Center for Investigative
 Journalism’s story on the [criminalization of
 homelessness](https://apnews.com/article/571a8646896ed0d12f3fe7ca3b1d064d).
