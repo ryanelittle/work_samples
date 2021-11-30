@@ -12,19 +12,13 @@ Work Samples
 ## Overview
 
 This repository exists to show examples of the code I have written as a
-data reporter at the [Howard Center for Investigative Journalism at the
+data reporter at Mother Jones, the [Howard Center for Investigative Journalism at the
 University of
-Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/).
+Maryland](https://merrill.umd.edu/about-merrill/signature-programs/the-howard-center-for-investigative-journalism/), ProPublica and the Associated Press' election web scraping team.
 
-These code samples have been chosen to show my growth as a
-computational/data journalist since first learning the basics of
-journalistic data analysis in August 2019.
+I primarily work in R, Python and SQL but I have used tools like Tabula and QGIS to analyze and clean datasets. When possible, I code in functions and classes that have become local packages I use to easily manage virtual environements and provide quick access to a codebase of solutions I created to solve common problems. 
 
-Before I began my graduate education at the [Philip Merrill College of
-Journalism](https://merrill.umd.edu/), I knew almost nothing about
-coding. As of October 2020, I am coding an open-source court scraper
-that my collaborators and I hope will make the web-scraping of U.S.
-court websites more accessible to local news reporters.
+I have experience working with many types of data, including massive government datasets, voting records and small spreadsheets built by the reporting of a team of journalists. My analyses have included the use of linear regressions and other statistical models, demonstrating correlation and other newsworthy relationships.
 
 All of the code in this repository was written by me.
 
@@ -119,19 +113,8 @@ demographic information.
 
 ## About Me
 
-Ryan Little is an award-winning reporter based at the Howard Center for
-Investigative Journalism who has also covered the Maryland General
-Assembly and the novel coronavirus for the Capital News Service.
+Ryan Little is an award-winning data journalist and the Roy W. Howard Investigative Fellow at Mother Jones. He also contracts work with ProPublica and the Associated Press' election web scraping team.
 
-He previously worked for [The Ledger](https://www.theledger.com/) in
-Lakeland, Fla., where his reporting prompted state attorney’s office
-investigations, caused resignations of multiple city officials and the
-termination of a planned $150 million mixed-use development called The
-Landings.
+He previously worked at the [Howard Center for Investigative Journalism](https://merrill.umd.edu/howard-center-for-investigative-journalism), the [Capital News Service](https://cnsmaryland.org/) and [The Ledger](https://www.theledger.com/) in Lakeland, Fla. His work has appeared in the New York Times, Washington Post, Associated Press and elsewhere.
 
-Little is pursuing a master’s degree in journalism with an emphasis on
-investigative and computational journalism at the [Philip Merrill
-College of Journalism at the University of
-Maryland](https://merrill.umd.edu/). His undergraduate degree is from
-the [University of Central Florida](https://communication.ucf.edu/),
-where he studied journalism and public administration.
+Little has a master’s degree from the [Philip Merrill College of Journalism at the University of Maryland](https://merrill.umd.edu/). There, he focused his studies on computational and data journalism. His undergraduate degree is from the [Nicholson School of Communication and Media at the University of Central Florida](https://communication.ucf.edu/), where he studied journalism and public administration.
