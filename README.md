@@ -74,7 +74,7 @@ and [search\_page\_mixin.py](https://github.com/ryanelittle/work_samples/blob/ma
 
 <a id="about"></a>
 
-## About me
+## About Me
 
 I am an award-winning data journalist and the Roy W. Howard Fellow at [Mother Jones](https://www.motherjones.com). I also do contract work with ProPublica and the Associated Press' election web scraping team.
 
