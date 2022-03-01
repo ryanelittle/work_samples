@@ -1,0 +1,1092 @@
+---
+title: "published-code"
+output: html_document
+---
+
+# REQUIRED PACKAGES AND FUNCTIONS
+
+```{r setup, include=FALSE}
+
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(readr)
+library(janitor)
+library(lubridate)
+library(gtools)
+library(scales)
+options(digits=6)
+options(scipen=999)
+
+'%notin%' <- Negate('%in%')
+
+
+#does a standard group_by and count() with sum
+grouper_sum <- function(input_df, group_by_column, sum_column, new_column_name = "n()"){
+  output_df <- input_df %>%
+    group_by(.data[[group_by_column]]) %>%
+    summarise(temp_count = sum(.data[[sum_column]])) %>%
+    mutate(percent = temp_count/sum(temp_count)*100) %>%
+    arrange(desc(percent)) %>%
+    rename(!!new_column_name := temp_count)
+  return(output_df)
+}
+
+#does a standard group_by and count() with percentage
+grouper <- function(input_df, group_by_column, new_column_name = "n()"){
+  output_df <- input_df %>%
+    group_by(.data[[group_by_column]]) %>%
+    summarise(temp_count = n()) %>%
+    mutate(percent = temp_count/sum(temp_count)*100) %>%
+    arrange(desc(percent)) %>%
+    rename(!!new_column_name := temp_count)
+  return(output_df)
+}
+
+#group/counts every column in input dataframe
+group_count <- function(input_df, group_column_name='n()', state_filter=NA, start_col = 1){
+  column_names <- colnames(input_df)
+  if(!is.na(state_filter)){
+    input_df <- input_df %>%
+      filter(state == state_filter)
+  }
+  for (column in column_names[start_col:length(column_names)]){
+    output <- grouper(input_df, column, group_column_name)
+    print(output)
+  }
+}
+
+#function for calculating age, updates to the day; stolen from the internet
+calc_age <- function(birthDate, refDate = Sys.Date()) {
+    require(lubridate)
+    period <- as.period(interval(birthDate, refDate),
+                        unit = "year")
+    period$year
+}
+
+#lowers case of every character column in a dataframe
+lower_df <- function(input_df){
+  names <- colnames(input_df)
+  output_df <- input_df
+  names <- colnames(output_df)
+  for (name in names){
+    if (is.character(output_df[[name]])){
+      output_df[[name]] <- tolower(output_df[[name]])
+      #print('yes')
+    } else {
+      output_df[[name]] <- output_df[[name]]
+      #print('no')
+    }
+  }
+  return(output_df)
+}
+
+#imports every file in a folder
+import_files_in_folder <- function(input_path, output_name=''){
+  files <- list.files(path=input_path)
+  for (file in files){
+    print(file)
+    file_path = paste0(input_path, file)
+    file_sans_csv = str_remove(file, '.csv')
+    file_sans_csv = gsub("-", "_", file_sans_csv)
+    imported_file <- read_csv(file_path)
+    assign(paste0(file_sans_csv, output_name), imported_file, envir = parent.frame())
+  }
+}
+
+
+pivot <- function(input_df, input_type){
+  output_df <- input_df %>%
+    select(-percent) %>%
+    mutate(type = input_type) %>%
+    relocate(type)
+  return(output_df)
+}
+
+```
+
+# REPAIR TABULA EXPORTS
+```{python}
+# The Purdue PDF was turned into 42 csvs using Tabula.
+# Regex functions were used to clean most errors created by Tabula, that code is:
+
+class Cleaner:
+    
+    def clean(self, input_data):
+        #removes quotation marks at the front and end of numbers
+        self.output_data = re.sub(r'(?!(([^"]*"){2})*[^"]*$),', '', input_data)
+        #removes '.00's and replaces round brackets with negatives  
+        self.output_data = self.output_data.replace('(', '-').replace(')', '').replace('.00', '').replace('"', '')
+        #removes commas in numbers
+        self.output_data = re.sub(r'(\w)\s([0-9]+.[0-9]+),', r'\1,\2 ', self.output_data)
+        return self.output_data
+
+for dirty_file in dirty_files:
+    print(dirty_file)
+    with open(dirty_file) as file:
+        data = file.read()
+        file.close()
+    cleaner = Cleaner()
+    clean_data = cleaner.clean(data)
+    output_name = dirty_file.split('/')[-1].replace('  ', ' ').replace(' ', '-').replace('---', '-').replace('--', '-')
+    with open(f'./data/cleaned-tabula/{output_name}', 'w') as output:
+        output.write(clean_data)
+        output.close()
+```
+
+# IMPORT AND CLEAN TABULA
+
+```{r}
+
+# Each csv was hand inspected and matched to the original PDF. 
+# This cell imports and binds all of the cleaned tabula csv outputs.
+# After binding, the entire sheet will be checked again for erros.
+
+#this function was slightly modified to force it to import the list of cleaned tabula files in order so that they will be bound in order
+import_bind_files_in_folder <- function(input_path, output_name=''){
+  files <- mixedsort(sort(list.files(path=input_path)), decreasing = TRUE)
+  master <- read_csv(paste0(input_path, files[1]))
+  for (file in files[2:length(files)]){
+    binder <- read_csv(paste0(input_path, file))
+    master <- master %>%
+      rbind(binder)
+  }
+  return(master)
+}
+
+#importing and binding
+import_master <- import_bind_files_in_folder('./data/cleaned-tabula/') %>%
+  #cleaning headers
+  clean_names() %>%
+  #making these columns numeric
+  mutate(x2002 = as.numeric(x2002),
+         x2003 = as.numeric(x2003),
+         x2004 = as.numeric(x2004),
+         x2013 = as.numeric(x2013),
+         x2014 = as.numeric(x2014),
+         )
+
+#removing NAs
+import_master[is.na(import_master)] <- 0
+
+#writing to csv for another check and pivoting in Python
+#write_csv(import_master, './data/binded_cleaned_tabula.csv')
+```
+
+#PIVOT TO DATABASE OF PAYMENTS
+
+```{PYTHON}
+
+from ..base.utils import Utilities
+from tqdm import tqdm
+
+class PaymentParser:
+    
+    # This parser was made to pivot Purdue Pharma payments from a list of payments in an accounting spreadsheet to a database of payments made to organizations.
+    # This data was a PDF that was turned into a CSV using Tabula. The output of Tabula was corrected using regex expressions and hand modifications.
+    # Generally, this PDF lists organization names in uppercase and departments/expense types in normal case. The pivot logic takes advantage of this format.
+        # There are known errors in this logic. They have been compensated for in CAPS_DEPARTMENTS and LOWER_ORGS.
+
+    #provides minor utilities
+    utils = Utilities()
+    #header of output database
+    HEADER = ['organization', 'department', 'year', 'amount']
+    #list of known departments that are in all caps
+    CAPS_DEPARTMENTS = ['LELE', 'ISQA', 'NDSE', 'PKDM', 'HECON', 'PPMD', 'PPMD - QA', 'PPMD - IT']
+    #list of known orgs that are not in all caps
+    LOWER_ORGS = ['American College of Toxicology', 'AVENTINE CO dba AVENTINE HEALTH SCIENCES', 'Drug Enforcement Agents Recreation Association', 'Maine Chiefs of Police Association', 'National Fibromyalgia & Chronic Pain Assn', 'Police Chiefs of Rockland County', 'Pain Connection']
+
+    # opens csv and breaks it into a list of lines
+    def _open(self, input_file):
+        self.input_file = input_file
+        with open(self.input_file) as file:
+            self.input_data = file.readlines()
+
+    #sets the year of a payment based on column position (enumerable points in the for loop)
+    def _set_year(self, nume):
+        self.nume = nume
+        if self.nume == 0:
+            self.output_year = 2002
+        elif self.nume == 1:
+            self.output_year = 2003
+        elif self.nume == 2:
+            self.output_year = 2004
+        elif self.nume == 3:
+            self.output_year = 2005
+        elif self.nume == 4:
+            self.output_year = 2006
+        elif self.nume == 5:
+            self.output_year = 2007
+        elif self.nume == 6:
+            self.output_year = 2008
+        elif self.nume == 7:
+            self.output_year = 2009
+        elif self.nume == 8:
+            self.output_year = 2010
+        elif self.nume == 9:
+            self.output_year = 2011
+        elif self.nume == 10:
+            self.output_year = 2012
+        elif self.nume == 11:
+            self.output_year = 2013
+        elif self.nume == 12:
+            self.output_year = 2014
+        elif self.nume == 13:
+            self.output_year = 2015
+        else:
+            raise Exception('Enumerable is out of range.')
+        return self.output_year
+
+    #tests if string is in list of known departments that are in all caps
+    def is_hecon(self, hecon_line):
+        self.hecon_line = hecon_line
+        if self.hecon_line in self.CAPS_DEPARTMENTS:
+            return True
+        else:
+            return False
+    
+    #tests if string is UPPER or in list of known orgs that are not in all UPPER
+    def is_upper(self, upper_line):
+        self.upper_line = upper_line
+        if self.upper_line.isupper() == True:
+            return True
+        elif self.upper_line in self.LOWER_ORGS:
+            return True
+        else:
+            return False
+
+    #assigns the organization name if the first column in the line/row passes the is_upper test 
+    def _parse_upper(self, line):
+        self.line = line
+        self.org = self.utils.clean(self.line[0])
+
+    #writes each column in a row to pivoted database, assigned to last org name assigned in parse_upper
+    def _parse_lower(self, line):
+        self.line = line
+        self.dept_type = self.utils.clean(self.line[0])
+        for self.nume, self.entry in enumerate(self.line[1:15]):
+            self.output_year = self._set_year(self.nume)
+            self.data_out = [self.org, self.dept_type, self.output_year, self.entry]
+            self.utils.write_to_csv(self.data_out, self.output_csv)
+    
+    #entrypoint
+    def parse_lines(self, input_file, output_file, output_file_path=''):
+        #assigns inputs to self
+        self.input_file = input_file
+        self.output_file = output_file
+        self.output_file_path = output_file_path
+        #opens file
+        self._open(self.input_file)
+        #creates output csv
+        self.output_csv = self.utils.create_csv(self.output_file, self.HEADER, self.output_file_path)
+        #for each line in the database (tqdm provides a pretty progress bar)
+        for self.line in tqdm(self.input_data[1:]):
+            #split line into list
+            self.line = self.line.split(',')
+            #test list[0] to see if it is passes organization tests
+            self.upper_test = self.is_upper(self.line[0])
+            self.hecon_test = self.is_hecon(self.line[0])
+            if self.upper_test is True and self.hecon_test is False:
+                #if is an org, set the current self.org for the name
+                self._parse_upper(self.line)
+            else:
+                #if it is not an org, log each payment for the last org and write it to the output csv
+                self._parse_lower(self.line)
+
+```
+
+#CLASSIFYING ORGS
+
+```{r}
+
+#importing broad classifications that were made using openrefine and hand-sorting and labeling organizations
+broad_classifications <- read_csv('./data/cleaning-steps/broad-analysis-hand-coded-refined.csv') %>%
+  clean_names() %>%
+  rename(position_other = medical_position_other) %>%
+  select(organization, broad_org_type, state, position_other, medicine_type) %>%
+  mutate(medicine_type = case_when(
+    medicine_type == 'anesthesiology' ~ 'anesthesia',
+    medicine_type == 'anethesia' ~ 'anesthesia',
+    medicine_type == "oncolocy" ~ "oncology",
+    medicine_type == "osteopathy" ~ "osteopathic",
+    medicine_type == 'rehabilitation' ~ 'physical/rehab',
+    organization == 'nc charlotte chapter of napnap' ~ 'pediatric',
+    organization == 'new hampshire board of pharmacy' ~ 'general',
+    medicine_type == 'cancer' ~ 'oncology',
+    medicine_type == 'general' ~ 'other',
+    medicine_type == 'narcotic' ~ 'narcotics',
+    is.na(medicine_type) ~ 'other',
+    TRUE ~ medicine_type),
+    state = case_when(
+      state == 'american' ~ 'none',
+      is.na(state) ~ 'none',
+      TRUE ~ state),
+    position_other = case_when(
+      is.na(position_other) ~ 'other',
+      position_other == 'administratos' ~ 'administrator',
+      position_other == 'academy of pai' ~ 'other',
+      position_other == 'assn of drug diversi' ~ 'other',
+      position_other == 'de la mujer latina in' ~ 'other',
+      position_other == 'michigan chronic fat' ~ 'other',
+      position_other == 'osteopathic medic' ~ 'other',
+      position_other == 'patient access' ~ 'other',
+      position_other == 'pharmacy' ~ 'pharmacist',
+      position_other == 'research' ~ 'other',
+      position_other == 'state board of pharmacy' ~ 'pharmacist',
+      position_other == 'state hospice' ~ 'other',
+      position_other == 'state medical' ~ 'other',
+      position_other == 'attorneys general' ~ 'law enforcement',
+      position_other == 'law enformcent' ~ 'law enforcement',
+      position_other == 'law encofremen' ~ "law enforcement",
+      position_other == 'nurses' ~ "nurse",
+      position_other == 'nursing' ~ "nurse",
+      organization == "democratic governors association" ~ "legislative",
+      organization == 'national vulvodynia association' ~ '',
+      TRUE ~ position_other)) %>%
+  mutate(broad_org_type = case_when(
+      broad_org_type == 'hospice & palliative care' ~ 'hospice and palliative care',
+      broad_org_type == 'hospice and palliative care association' ~ 'hospice and palliative care',
+      broad_org_type == 'hospice and palliative care organization' ~ 'hospice and palliative care',
+      broad_org_type == 'gerontological society of america' ~ 'gerontological society',
+      broad_org_type == 'gerontology society' ~ 'gerontological society',
+      broad_org_type == 'lung assoc' ~ 'lung association',
+      broad_org_type == 'osteopathic assn' ~ 'osteopathic association',
+      broad_org_type == 'pharmacy association' ~ 'pharmacists association',
+      broad_org_type == 'assoc of rehab nurses' ~ 'association of rehab nurses',
+      TRUE ~ broad_org_type))
+
+
+#importing pivoted, binded, cleaned tabula, filtering out 0 payments, removing double spaces, add broad orgs, creating medical/non-medical, exporting for last openrefine pass
+
+#creating list of medical
+positions <- c('pharmacist', 'physician', 'nurse', 'physician assistant', 'patient advocacy', 'medical director', 'case manager', 'medical publication', 'director', 'administration', "doctor's association", 'nurse, physician assistants')
+
+old_master <- read_csv('./data/cleaning-steps/pivoted_binded_cleaned_tabula.csv') %>%
+  filter(amount > 0) %>%
+  mutate(organization = gsub('  ', ' ', organization)) %>%
+  left_join(broad_classifications, by = "organization") %>%
+  rename(broad_org = broad_org_type) %>%
+  mutate(type = case_when(
+    position_other %in% positions ~ 'medical',
+    TRUE ~ position_other),
+    position_other = case_when(
+    position_other %in% positions ~ position_other,
+    TRUE ~ '')) %>%
+  rename(position = position_other) %>%
+  relocate(organization, broad_org, state, type, position, medicine_type)
+
+#exporting for last openrefine pass
+#write_csv(master, './data/joined_pivoted_binded_cleaned_tabula.csv')
+
+```
+
+## IMPORT AND RECLASSIFY FOR FINAL MASTER
+
+```{R}
+#import to reclassify to simpler classification model
+master <- read_csv("data/cleaning-steps/hand_fixed_refined_joined_pivoted_binded_cleaned_tabula.csv") %>%
+  mutate(department = gsub('  ', ' ', department)) %>%
+  mutate(organization = case_when(
+    organization == 'national patient advocate foundatio' ~ 'patient advocate foundation',
+    TRUE ~ organization)) %>%
+  group_by(organization) %>%
+  ungroup() %>%
+  mutate(type = case_when(
+    organization == 'pharmaceutical research & manufacturers of america' ~ 'phrma',
+    position %in% c('pharmacist', 'physician', 'nurse', 'physician assistant', 'medical director') & organization != 'pharmaceutical research & manufacturers of america' & subtype != 'pain' & subtype != 'oncology' & subtype != 'hospice' & broad_org != 'board of pharmacy' ~ 'medical societies',
+      type == 'medical' & organization != 'pharmaceutical research & manufacturers of america' & subtype != 'pain' & subtype != 'oncology' & subtype != 'hospice' ~ 'healthcare',
+    type == 'law enforcement' ~ 'law enforcement',
+    type == 'legislative' ~ 'political',
+    type == 'drug abuse prevention' ~ 'drug abuse prevention',
+    type == 'settlement' ~ 'settlement',
+    subtype == 'pain' ~ 'pain advocacy',
+    subtype == 'oncology' ~ 'cancer and hospice',
+    subtype == 'hospice' ~ 'cancer and hospice',
+    TRUE ~ 'other groups'
+  )) %>%
+  mutate(position = case_when(
+    type == "medical societies" ~ position,
+    TRUE ~ 'NA'
+  )) %>%
+  mutate(medicine_type = case_when(
+    type == "medical societies" ~ subtype,
+    TRUE ~ 'NA'
+  )) %>%
+  rename(medical_position = position) %>%
+  select(organization, broad_org, state, type, medical_position, medicine_type, department, year, amount)
+
+#export to csv to repair missing and incorrect data
+#write_csv(master, './data/master-output-last-clean.csv')
+```
+
+## FINAL CLEANING PASS, IMPLIMENT FINAL CLASSIFCATION NAMES
+
+```{R}
+
+#24 organizations had incorrect or missing data
+#importing corrected master
+master <- read_csv('./data/master-output-last-clean-repaired.csv') %>%
+  clean_names() %>%
+  select(-x10) %>%
+  rename(old_type = type)
+
+#importing final corrected type
+types <- read_csv('./data/purdue-pharma-corrected-type.csv') %>%
+  select(-last_payment, -total)
+
+master <- master %>%
+  left_join(types, by = "organization") %>%
+  select(organization, broad_org, state, type, medical_position, medicine_type, department, year, amount)
+
+#writing outfile to assign subtypes
+pain_groups <- master %>%
+  filter(type == "pain advocacy") %>%
+  group_by(organization, type) %>%
+  summarise(total = sum(amount))
+#write_csv(pain_groups, './data/pain-groups-type.csv')
+
+#reading cleaned pain subtypes
+pain_subtypes <- read_csv('./data/pain-groups-type-JL.csv') %>%
+  select(-type, -total) %>%
+  rename(pain_type = pain_subtype)
+
+#final classifications chosen, renaming, joining pain subtypes
+master <- master %>%
+  mutate(type = case_when(
+    type == "medical societies" ~ "other professional medical societies",
+    type == "pain advocacy" ~ "pain groups",
+    type == "healthcare" ~ "other healthcare",
+    type == "settlement" ~ "wv settlement",
+    TRUE ~ type
+  )) %>%
+  left_join(pain_subtypes) %>%
+  select(organization, broad_org, state, type, medical_position, medicine_type, pain_type, department, year, amount) 
+
+master <- master %>%
+  mutate(broad_org = case_when(
+    organization == "american cancer society" & broad_org == "conventions" ~ "cancer society",
+    TRUE ~ broad_org
+  ))
+  
+
+ons_changes<- master %>%
+  filter(broad_org != "oncology nursing society" & str_detect(broad_org, "oncology nursing society"))
+
+ons_changes <- ons_changes$broad_org
+
+master <- master %>%
+  mutate(broad_org = case_when(
+    broad_org %in% ons_changes ~ "oncology nursing society",
+    TRUE ~ broad_org
+  ))
+
+master <- master %>%
+  mutate(organization = case_when(
+    broad_org == "patient advocate foundation" & state == "national" ~ "national patient advocate foundation",
+    TRUE ~ organization
+  ))
+
+print(paste0('This sum - ', sum(master$amount), ' - should equal the total from the PDF: 115,788,973.23.'))
+
+#write_csv(master, './pub-output/purdue-pharma-master.csv')
+
+
+```
+
+# ANALYSIS AND FACT-CHECK
+
+###	'The biggest individual recipient by far was the Pharmaceutical Research and Manufacturers of America. With a total of $23 million, the powerful lobbying group made up roughly a fifth of Purdue’s third-party spending. Prior to 2007, almost all of the spending was denoted as the “Public Affairs” department. But from 2008 to 2013, spending doubled and was now described as “Fed Gov Affairs.”'
+
+```{r}
+
+phrma <- master %>%
+  filter(type == "phrma")
+
+grouper_sum(phrma, 'department', 'amount', 'amount')
+
+```
+
+```{r}
+
+ggplot(data=phrma, aes(x=factor(year), y=amount, fill=department)) + 
+  geom_bar(stat="identity", alpha=.65, color="black") + 
+  theme_light() +
+  #ggtitle("Total Purdue dollars spent by type, 2002 to 2015") + 
+  ylab("Spending in dollars") + 
+  xlab("year") + 
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) +
+  scale_y_continuous(label=comma)
+
+```
+
+### PAIN ADVOCACY GROUPS
+
+```{r}
+
+pain <- master %>%
+  filter(str_detect(type,"pain"))
+
+sum(pain$amount)
+
+```
+
+```{r}
+
+pain_count <- pain %>%
+  group_by(organization, pain_type) %>%
+  count() %>%
+  ungroup() 
+
+grouper(pain_count, "pain_type")
+
+```
+
+
+```{r}
+
+grouper_sum(pain, "pain_type", "amount", "amount")
+
+```
+
+```{r}
+
+american_pain_foundation <- master %>%
+  filter(organization == "american pain foundation")
+
+sum(american_pain_foundation$amount)
+```
+
+```{r}
+
+american_pain_society <- master %>%
+  filter(organization == "american pain society")
+
+sum(american_pain_society$amount)
+```
+
+```{r}
+
+center_for_practical_bioethics <- master %>%
+  filter(organization == "center for practical bioethics inc")
+
+sum(center_for_practical_bioethics$amount)
+```
+
+### OTHER PROFESSIONAL MEDICAL SOCIETIES
+
+```{R}
+
+medical_societies <- master %>%
+  filter(type == "other professional medical societies")
+
+sum(medical_societies$amount)
+
+```
+
+```{r}
+
+grouper_sum(medical_societies, "organization", "amount", "amount")
+
+```
+
+```{r}
+
+ama <- master %>%
+  filter(organization %in% c('american medical association'))
+
+sum(ama$amount)
+
+```
+
+```{r}
+
+american_osteopathic_association <- master %>%
+  filter(organization == "american osteopathic assn")
+
+sum(american_osteopathic_association$amount)
+```
+
+#NATIONAL ASSOC OF DRUG DIVERSION INVESTIGATORS
+
+```{r}
+
+naddi <- master %>%
+  filter(organization == "naddi national assoc of drug diversion investigators in")
+
+sum(naddi$amount)
+```
+
+```{r}
+
+naddi_by_year <- grouper_sum(naddi, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in naddi_by_year$year){
+  temp <- naddi_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+print(naddi_by_year$amount)
+```
+
+### AMERICAN ACADEMY OF FAMILY PHYSICIANS
+
+```{r}
+
+aafp <- master %>%
+  filter(organization == "american academy of family physicians")
+
+sum(aafp$amount)
+```
+
+```{r}
+
+aafp_by_year <- grouper_sum(aafp, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in aafp_by_year$year){
+  temp <- aafp_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+### U.S. CONFERENCE OF MAYORS
+
+```{r}
+
+mayors <- master %>%
+  filter(organization == "united states conference of mayors mayors business council")
+
+sum(mayors$amount)
+```
+
+```{r}
+
+mayors_by_year <- grouper_sum(mayors, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in mayors_by_year$year){
+  temp <- mayors_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+### AMERICAN CANCER SOCIETY
+
+```{r}
+
+aca <- master %>%
+  filter(broad_org == "cancer society")
+
+grouped_aca <- aca %>%
+  group_by(organization) %>%
+  count()
+
+aca_orgs <- grouped_aca$organization
+
+aca_only <- aca %>%
+  filter(organization == "american cancer society")
+
+aca_network <- aca %>%
+  filter(organization == "american cancer soc cancer ntwk inc")
+
+
+aca_alliance <- aca %>%
+  filter(organization == "american cancer society am alliance of cancer pain init")
+
+aca_armstrong <- aca %>%
+  filter(organization == "american cancer society armstrong unit")
+
+sum(aca$amount)
+```
+
+```{r}
+
+aca_only_by_year <- grouper_sum(aca_only, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in aca_only_by_year$year){
+  temp <- aca_only_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+```{r}
+
+aca_network_by_year <- grouper_sum(aca_network, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in aca_network_by_year$year){
+  temp <- aca_network_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+```{r}
+
+aca_alliance_by_year <- grouper_sum(aca_alliance, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in aca_alliance_by_year$year){
+  temp <- aca_alliance_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+```{r}
+
+aca_armstrong_by_year <- grouper_sum(aca_armstrong, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in aca_armstrong_by_year$year){
+  temp <- aca_armstrong_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+
+### ONCOLOGY NURSING SOCIETY 
+
+```{r}
+
+ons <- master %>%
+  filter(broad_org == "oncology nursing society")
+
+ons_only <- master %>%
+  filter(organization == "oncology nursing society")
+
+ons_foundation <- master %>%
+  filter(organization == "ons foundation")
+
+
+sum(ons$amount)
+```
+
+```{r}
+
+ons_only_by_year <- grouper_sum(ons_only, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in ons_only_by_year$year){
+  temp <- ons_only_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+### ONCOLOGY NURSING SOCIETY FOUNDATION
+
+```{r}
+
+ons_foundation_by_year <- grouper_sum(ons_foundation, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in ons_foundation_by_year$year){
+  temp <- ons_foundation_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+### JOHNS HOPKINS UNIVERSITY
+
+```{r}
+
+johns_hopkins <- master %>%
+  filter(broad_org == "johns hopkins university")
+
+johns_hopkins_by_year <- grouper_sum(johns_hopkins, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in johns_hopkins_by_year$year){
+  temp <- johns_hopkins_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+### Biotechnology Industry Organization
+
+```{r}
+
+bio <- master %>%
+  filter(broad_org == "biotechnology industry organ")
+
+bio_by_year <- grouper_sum(bio, "year", "amount", "amount") %>%
+  arrange(year)
+
+for (year_ in bio_by_year$year){
+  temp <- bio_by_year %>%
+    filter(year == year_)
+  print(paste0(year_, ' - ', temp$amount))
+}
+```
+
+```{r}
+
+sum(bio$amount)
+
+```
+
+### LAW ENFORCEMENT
+
+```{r}
+
+law_enforcement <- master %>%
+  filter(type == "law enforcement")
+
+sum(law_enforcement$amount)
+```
+
+```{R}
+
+grouper_sum(law_enforcement, 'organization', 'amount', 'amount')
+
+```
+
+### DRUG ABUSE
+
+```{r}
+
+drug_abuse <- master %>%
+  filter(type == "drug abuse prevention")
+
+```
+
+```{r}
+
+ggplot(data=drug_abuse, aes(x=factor(year), y=amount, fill=department)) + 
+  geom_bar(stat="identity", alpha=.65, color="black") + 
+  theme_light() +
+  #ggtitle("Total Purdue dollars spent by type, 2002 to 2015") + 
+  ylab("Spending in dollars") + 
+  xlab("year") + 
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) +
+  scale_y_continuous(label=comma)
+
+```
+
+## RECIPIENTS WITH KEY FUNDING CHANGES OVER TIME
+
+```{r}
+
+key_changes <- c('American Pharmacists Association', 'Partnership For A Drug Free America Inc', 'Patient Advocate Foundation', "American Osteopathic Assn", "Pharmaceutical Research & Manufacturers of America", "American Academy of Pain Management", "American Academy of Pain Medicine", "Center For Practical Bioethics Inc", "American Medical Association")
+
+group_org <- function(key_change){
+  temp <- pretty_version %>%
+    filter(organization == !!key_change) 
+  
+  temp <- grouper_sum(temp, 'year', 'amount', 'total') %>%
+    #mutate(organization = paste0(!!key_change)) %>%
+    #relocate(organization) %>%
+    pivot(key_change)
+}
+
+
+spending_by_key_changes <- group_org(key_changes[1])
+
+for (key_change in key_changes[2:length(key_changes)]){
+  
+  joiner <- group_org(key_change)
+  
+  spending_by_key_changes <- spending_by_key_changes %>%
+    bind_rows(joiner)
+}
+
+spending_by_key_changes <- spending_by_key_changes %>%
+  pivot_wider(names_from = type, values_from = total) %>%
+  arrange(year)
+
+#write_csv(spending_by_key_changes, './pub-output/spending-by-key-changes.csv')
+
+```
+
+
+# PUBLICATION OUTPUTS
+
+```{r}
+grouped_master <- master %>%
+  group_by(organization, type, medical_position, medicine_type) %>%
+  summarise(last_payment = max(year),
+            total = sum(amount))
+
+
+grouped_medical <- master %>%
+  group_by(type) %>%
+  summarise(total = sum(amount))
+
+
+#COMMENTIING OUT CODE THAT WRITES PUB FILES
+
+#write_csv(grouped_master, './pub-output/purdue-pharma-grouped-master.csv')
+#write_csv(grouped_medical, './pub-output/purdue-pharma-grouped-medical.csv')
+    
+```
+
+## PRETTY VERSION FOR FLOURISH HIERARCHY VISUALIZATION
+
+```{r}
+simpleCap <- function(x) {
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), substring(s, 2),
+      sep="", collapse=" ")
+}
+
+
+
+pretty_version <- master %>%
+  select(-broad_org) %>%
+  mutate(type = case_when(
+    type == "wv settlement" ~ "WV Settlement",
+    type == "phrma" ~ "PhRMA",
+    TRUE ~ type)) %>%
+  mutate(organization = sapply(organization, simpleCap),
+         state = sapply(state, simpleCap),
+         type = sapply(type, simpleCap),
+         medical_position = sapply(medical_position, simpleCap),
+         medicine_type = sapply(medicine_type, simpleCap),
+         pain_type = sapply(pain_type, simpleCap)
+         ) %>%
+  mutate(organization = gsub("Of ", "of ", organization)) %>%
+  mutate(organization = gsub("Assoc ", "Association", organization)) %>%
+  mutate(organization = gsub("Soc ", "Society", organization)) %>%
+  #mutate(department = gsub("Ff ", "FF", department)) %>%
+  mutate(medical_position = gsub("NANA", "", medical_position),
+         medicine_type = gsub("NANA", "", medicine_type),
+         pain_type = gsub("NANA", "", pain_type),
+         state = gsub("", "", state)) %>%
+  mutate(state = gsub('National', '', state)) %>%
+  mutate(state = gsub('None', '', state)) %>%
+  mutate(organization = gsub('Ymca', 'YMCA', organization)) %>%
+  mutate(type = gsub('Ymca', 'YMCA', type)) %>%
+  mutate(organization = trimws(organization, c("both")),
+         state = trimws(state, c("both")),
+         type = trimws(type, c("both")),
+         medical_position = trimws(medical_position, c("both")),
+         medicine_type = trimws(medicine_type, c("both")),
+         department = trimws(department, c("both")),
+         #last_payment = as.character(last_payment)
+         ) 
+  
+
+pretty_grouped <- pretty_version %>%
+  group_by(organization, type) %>%
+  count() %>%
+  select(-n)
+
+#write_csv(pretty_version, './pub-output/pretty-version.csv')
+
+#write_csv(pretty_grouped, './pub-output/pretty-grouped.csv')
+
+```
+
+## FLOURISH BAR CHART TYPE VIZ
+
+```{r}
+
+type <- pretty_version %>%
+  group_by(type) %>%
+  summarise()
+
+types <- type$type
+
+spending_per_year <- grouper_sum(master, 'year', "amount", "dollars") %>%
+  pivot('total')
+
+spending_by_type <- spending_per_year %>%
+  filter(type == 'none')
+
+for (type_ in types){
+  temp <- pretty_version %>%
+    filter(type == !!type_) 
+  joiner <- grouper_sum(temp, 'year', 'amount', 'dollars') %>%
+    pivot(type_)
+  spending_by_type <- spending_by_type %>%
+    bind_rows(joiner)
+}
+
+spending_by_type <- spending_by_type %>%
+  clean_names() %>%
+  rename(total = dollars)
+
+spending_by_type[is.na(spending_by_type)] <- 0 
+
+ggplot(data=spending_by_type, aes(x=factor(year), y=total, fill=type)) + 
+  geom_bar(stat="identity", alpha=.65, color="black") + 
+  #scale_fill_manual(values = c("black", "red", "lightgreen", 'gold', 'blue', 'darkred', 'darkgreen')) +
+  theme_light() +
+  #geom_bar(aes(y=type), stat="identity", position ="identity", al pha=.3, fill='lightblue', color='lightblue4') +
+  #geom_bar(aes(y=law_enforcement), stat="identity", position ="identity", alpha=.3, fill='red', color='red') +
+  #geom_bar(aes(y=pharmacist), stat="identity", position ="identity", alpha=.3, fill='yellow', color='yellow') +
+  #geom_bar(aes(y=physician), stat="identity", position ="identity", alpha=.3, fill='green', color='green') +
+  ggtitle("Total Purdue dollars spent by type, 2002 to 2015") + 
+  ylab("Spending in dollars") + 
+  xlab("year") + 
+  theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) +
+  scale_y_continuous(label=comma)
+
+
+```
+
+```{r}
+
+pretty_spending_by_type <- spending_by_type %>%
+  pivot_wider(names_from = type, values_from = total) %>%
+  filter(year != 2015) 
+
+
+#write_csv(pretty_spending_by_type, './pub-output/spending-by-type.csv')
+
+```
+
+## FLOURISH BAR CHART DEPARTMENT VIZ
+
+```{r}
+
+spending_per_year <- grouper_sum(master, 'year', "amount", "dollars") %>%
+  pivot('total')
+
+
+department <- grouper_sum(pretty_version, "department", "amount", "dollars") %>%
+  slice(1:30)
+
+departments <- department$department
+
+spending_by_department <- department %>%
+  clean_names() %>%
+  rename(total = dollars)
+
+for (department_ in departments){
+  spending_by_department_filtered <- pretty_version %>%
+    filter(department == !!department_) 
+  
+  spending_by_department_filtered <- grouper_sum(spending_by_department_filtered, 'year', 'amount', 'total') %>%
+    mutate(type = !!department_) %>%
+    relocate(type)
+  
+  plot <- ggplot(data=spending_by_department_filtered, aes(x=factor(year), y=total)) + 
+    geom_bar(stat="identity", alpha=.65, color="black") + 
+    #scale_fill_manual(values = c("black", "red", "lightgreen", 'gold', 'blue', 'darkred', 'darkgreen')) +
+    theme_light() +
+    #geom_bar(aes(y=type), stat="identity", position ="identity", al pha=.3, fill='lightblue', color='lightblue4') +
+    #geom_bar(aes(y=law_enforcement), stat="identity", position ="identity", alpha=.3, fill='red', color='red') +
+    #geom_bar(aes(y=pharmacist), stat="identity", position ="identity", alpha=.3, fill='yellow', color='yellow') +
+    #geom_bar(aes(y=physician), stat="identity", position ="identity", alpha=.3, fill='green', color='green') +
+    ggtitle("Total Purdue dollars spent by type, 2002 to 2015") + 
+    ylab("Spending in dollars") + 
+    xlab("year") + 
+    theme(axis.text.x = element_text(angle = 60, vjust = 1, hjust=1)) +
+    scale_y_continuous(label=comma)
+  
+  
+  print(plot)
+
+}
+
+```

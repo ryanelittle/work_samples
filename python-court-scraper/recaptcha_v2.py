@@ -5,10 +5,10 @@ from selenium.webdriver.support.ui import WebDriverWait
 from .recaptcha import Recaptcha
 
 class RecaptchaV2(Recaptcha):
-    
+
     def _inject_response(self):
         self.driver.execute_script(f'document.getElementById("g-recaptcha-response").innerHTML = "{self.g_response}"')
-    
+
     def _submit(self):
         if self.script_submit != None:
             self.driver.execute_script(self.script_submit)
@@ -16,7 +16,7 @@ class RecaptchaV2(Recaptcha):
             self.driver.find_element(xpath_submit).click()
         else:
             raise SubmitException('no way to submit provided')
-        
+
     def _solve(self):
         try:
             self._recaptcha_V2_solver()
@@ -30,9 +30,9 @@ class RecaptchaV2(Recaptcha):
             self._submit()
         except:
             raise SubmitError('provided submit option is not working')
-    
+
     # this function is the entry point
-    def solve(self, driver, sitekey, apikey, script_submit=None, xpath_submit=None):           
+    def solve(self, driver, sitekey, apikey, script_submit=None, xpath_submit=None):
         self.driver = driver
         self.sitekey = sitekey
         self.apikey = apikey

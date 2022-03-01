@@ -6,7 +6,7 @@ class SearchPageMixIn():
 
     def _county_specific_selenium_search(self):
         raise CountyNotSupported('County is not supported. Are you a developer? Did you forget to provide county-specific steps for searching?')
-    
+
     def _get_last_workday(self, subtract_days = 1):
         self.subtract_days = subtract_days
         self.url_date = self.lastdate.date_to_search(self.year, subtract_days = subtract_days).strftime("%m/%d/%y")
@@ -54,7 +54,7 @@ class SearchPageMixIn():
                 print(f'attempting to parse case table for {self.url_date}')
                 result = self._parse_case_table()
             except IndexError:
-                pass  
+                pass
         return result
 
     def most_recent_case(self, county, year, case_prefix, session=None, driver=None, row_locator=None, single_case_locator=None, empty_return_text=None):
@@ -70,7 +70,7 @@ class SearchPageMixIn():
         if self.driver != None:
             self._county_specific_selenium_steps()
         else:
-            self.output = self.get_html(self.url, payload = self.payload) 
+            self.output = self.get_html(self.url, payload = self.payload)
         try:
             return self._parse_case_table()
         except:
